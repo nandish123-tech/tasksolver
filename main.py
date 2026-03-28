@@ -88,23 +88,23 @@ def generate_ai_image(prompt, output_path="generated_image.webp"):
             with open(output_path, 'wb') as f:
                 f.write(response.content)
 
-            print(f"✅ Image generated successfully!")
-            print(f"💾 Saved: {output_path}")
-            print(f"📖 Format: WEBP (1024x1024px)\n")
+            print(f"Image generated successfully!")
+            print(f"Saved: {output_path}")
+            print(f" Format: WEBP (1024x1024px)\n")
             return output_path
         else:
             try:
                 error_msg = response.json()
             except:
                 error_msg = response.text
-            print(f"❌ API Error {response.status_code}: {error_msg}\n")
+            print(f"API Error {response.status_code}: {error_msg}\n")
             return None
 
     except requests.exceptions.Timeout:
-        print(f"❌ Request timed out. Please try again.\n")
+        print(f"Request timed out. Please try again.\n")
         return None
     except Exception as e:
-        print(f"❌ Error: {str(e)}\n")
+        print(f" Error: {str(e)}\n")
         return None
 
 def upload_image_to_linkedin(image_path):
@@ -119,18 +119,18 @@ def upload_image_to_linkedin(image_path):
     """
     # Validate image exists
     if not image_path or not os.path.exists(image_path):
-        print(f"❌ Image not found: {image_path}")
+        print(f"Image not found: {image_path}")
         return None
     
     # Check file size (LinkedIn max is ~10MB)
     file_size = os.path.getsize(image_path)
     if file_size > 10 * 1024 * 1024:
-        print(f"❌ Image too large: {file_size / 1024 / 1024:.1f}MB (max 10MB)")
+        print(f"Image too large: {file_size / 1024 / 1024:.1f}MB (max 10MB)")
         return None
     
     person_id = get_linkedin_person_id()
     if not person_id:
-        print("❌ Cannot upload: Unable to authenticate with LinkedIn")
+        print("Cannot upload: Unable to authenticate with LinkedIn")
         return None
     
     try:
@@ -139,7 +139,7 @@ def upload_image_to_linkedin(image_path):
             'X-Restli-Protocol-Version': '2.0.0'
         }
         
-        print("\n📤 Uploading image to LinkedIn...")
+        print("\nUploading image to LinkedIn...")
         
         # Step 1: Register the upload
         register_url = "https://api.linkedin.com/v2/assets?action=registerUpload"
@@ -159,7 +159,7 @@ def upload_image_to_linkedin(image_path):
         
         register_response = requests.post(register_url, headers=headers, json=register_data, timeout=15)
         if register_response.status_code != 200:
-            print(f"❌ Failed to register upload: {register_response.status_code}")
+            print(f"Failed to register upload: {register_response.status_code}")
             print(f"   Response: {register_response.text}")
             return None
         
@@ -169,7 +169,7 @@ def upload_image_to_linkedin(image_path):
             upload_url = response_json['value']['uploadMechanism']['com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest']['uploadUrl']
             asset_urn = response_json['value']['asset']
         except (KeyError, TypeError) as e:
-            print(f"❌ Unexpected response format: {str(e)}")
+            print(f"Unexpected response format: {str(e)}")
             return None
         
         # Step 2: Upload the image
@@ -178,7 +178,7 @@ def upload_image_to_linkedin(image_path):
             upload_response = requests.put(upload_url, data=f, headers={'Authorization': f'Bearer {LI_TOKEN}'}, timeout=30)
         
         if upload_response.status_code != 201:
-            print(f"❌ Failed to upload image: {upload_response.status_code}")
+            print(f"Failed to upload image: {upload_response.status_code}")
             print(f"   Response: {upload_response.text}")
             return None
         
@@ -189,7 +189,7 @@ def upload_image_to_linkedin(image_path):
         print("❌ Upload request timed out. Please try again.")
         return None
     except Exception as e:
-        print(f"❌ Upload error: {str(e)}")
+        print(f"Upload error: {str(e)}")
         return None
 
 def post_to_linkedin(text, image_path=None):
@@ -204,7 +204,7 @@ def post_to_linkedin(text, image_path=None):
         bool: True if successful, False otherwise
     """
     if not text or not text.strip():
-        print("❌ Error: Post text cannot be empty")
+        print("Error: Post text cannot be empty")
         return False
     
     person_id = get_linkedin_person_id()
@@ -216,7 +216,7 @@ def post_to_linkedin(text, image_path=None):
     if image_path:
         media_asset = upload_image_to_linkedin(image_path)
         if not media_asset:
-            print("⚠️  Continuing without image...")
+            print("Continuing without image...")
 
     try:
         url = "https://api.linkedin.com/v2/ugcPosts"
@@ -268,10 +268,10 @@ def post_to_linkedin(text, image_path=None):
             return False
     
     except requests.exceptions.Timeout:
-        print("❌ Request timed out. Please try again.")
+        print(" Request timed out. Please try again.")
         return False
     except Exception as e:
-        print(f"❌ Unexpected error: {str(e)}")
+        print(f"Unexpected error: {str(e)}")
         return False
 
 # --- MAIN LOGIC ---
@@ -282,12 +282,12 @@ if __name__ == "__main__":
     
     # Verify configuration
     if not LI_TOKEN:
-        print("❌ Fatal Error: LINKEDIN_TOKEN not configured.")
+        print(" Fatal Error: LINKEDIN_TOKEN not configured.")
         print("   Please add LINKEDIN_TOKEN to your .env file")
         exit(1)
     
     if not STABILITY_API_KEY or STABILITY_API_KEY == "sk-MYAPIKEY":
-        print("⚠️  Warning: STABILITY_API_KEY not configured.")
+        print("     Warning: STABILITY_API_KEY not configured.")
         print("   Image generation will not work without a valid API key")
         print("   Get free credits at: https://platform.stability.ai/")
         print()
@@ -361,9 +361,9 @@ if __name__ == "__main__":
     if input().lower() == 'y':
         success = post_to_linkedin(generated_text, image_path)
         if success:
-            print("\n✨ All done! Check your LinkedIn profile.")
+            print("\n All done! Check your LinkedIn profile.")
         else:
-            print("\n❌ Post failed. Please check your settings and try again.")
+            print("\n Post failed. Please check your settings and try again.")
     else:
         print("   Post cancelled by user.")
     
